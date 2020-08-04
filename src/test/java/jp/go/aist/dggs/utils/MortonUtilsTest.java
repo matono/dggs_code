@@ -1,15 +1,14 @@
-package jp.go.aist.dggs;
+package jp.go.aist.dggs.utils;
 
+import jp.go.aist.dggs.common.DGGS;
 import jp.go.aist.dggs.geometry.ISEA4DFaceCoordinates;
 import org.giscience.utils.geogrid.generic.Trigonometric;
 import org.giscience.utils.geogrid.geometry.FaceCoordinates;
 import org.giscience.utils.geogrid.geometry.GeoCoordinates;
 import org.giscience.utils.geogrid.projections.ISEAProjection;
-import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static jp.go.aist.dggs.common.DGGS.*;
+import static org.junit.Assert.*;
 
 public class MortonUtilsTest {
     private final double _precision = 1e-7;
@@ -19,7 +18,7 @@ public class MortonUtilsTest {
     @Test
     public void getCommonAncestor() {
         String[] pdCodeList = {"12343241532167","12342451","1234512983012308"};
-        Assert.assertEquals("1234", MortonUtils.getGreatestCommonAncestor(pdCodeList));
+        assertEquals("1234", MortonUtils.getGreatestCommonAncestor(pdCodeList));
     }
 
     @Test
@@ -31,24 +30,24 @@ public class MortonUtilsTest {
     @Test
     public void getCommonAncestor_Equal() {
         String[] pdCodeList = {"1023","1023"};
-        Assert.assertEquals("1023", MortonUtils.getGreatestCommonAncestor(pdCodeList));
+        assertEquals("1023", MortonUtils.getGreatestCommonAncestor(pdCodeList));
     }
 
     @Test
     public void convertToMorton() {
-        String mortonCode = MortonUtils.convertToMorton(34.6400223819d, 135.454610432d, 1.1d, 32);
-        GeoCoordinates coords = MortonUtils.convertFromMorton(mortonCode);
+        String mortonCode = MortonUtils.toPDCode(new GeoCoordinates(34.6400223819d, 135.454610432d, 1.1d), 32);
+        GeoCoordinates coords = MortonUtils.toGeoCoordinate(mortonCode);
         assertTrue(Math.abs(34.6400223819d - coords.getLat()) < this._precision);
         assertTrue(Math.abs(135.454610432d - coords.getLon()) < this._precision);
         assertTrue(Math.abs(1.1d - coords.getHeight()) < this._precision_z);
     }
 
     @Test
-    public void convertToMorton_Random() throws Exception {
+    public void convertToMorton_Random() {
         for (int i = 0; i < this._iterations; i++) {
             GeoCoordinates c = new GeoCoordinates(Math.random() * 179.99 - 89.995, Math.random() * 360.0 - 180.0, Math.random() * DGGS.H_RANGE * 2 - DGGS.H_RANGE);
-            String mortonCode = MortonUtils.convertToMorton(c.getLat(), c.getLon(), c.getHeight(), DGGS.MAX_XY_RESOLUTION);
-            GeoCoordinates coords = MortonUtils.convertFromMorton(mortonCode);
+            String mortonCode = MortonUtils.toPDCode(c, DGGS.MAX_XY_RESOLUTION);
+            GeoCoordinates coords = MortonUtils.toGeoCoordinate(mortonCode);
 
             assertTrue(Math.abs(coords.getLat() - c.getLat()) < this._precision);
             assertTrue((Math.abs(coords.getLon() - c.getLon()) % 180) * Trigonometric.cos(c.getLat()) < this._precision);
@@ -57,22 +56,22 @@ public class MortonUtilsTest {
     }
 
     @Test
-    public void convertToMorton_resolution() throws Exception {
-        GeoCoordinates c = new GeoCoordinates(Math.random() * 179.99 - 89.995, Math.random() * 360.0 - 180.0, Math.random() * DGGS.H_RANGE * 2 - DGGS.H_RANGE);
-        String mortonCode = MortonUtils.convertToMorton(c.getLat(), c.getLon(), c.getHeight(), DGGS.MAX_XY_RESOLUTION);
-        GeoCoordinates coords = MortonUtils.convertFromMorton(mortonCode, DGGS.MAX_XY_RESOLUTION);
+    public void convertToMorton_resolution() {
+        GeoCoordinates c = new GeoCoordinates(Math.random() * 179.99 - 89.995, Math.random() * 360.0 - 180.0);
+        String mortonCode = MortonUtils.toPDCode(c, DGGS.MAX_XY_RESOLUTION);
+        GeoCoordinates coords = MortonUtils.toGeoCoordinate(mortonCode, DGGS.MAX_XY_RESOLUTION);
         assertTrue(Math.abs(coords.getLat() - c.getLat()) < this._precision);
         assertTrue((Math.abs(coords.getLon() - c.getLon()) % 180) * Trigonometric.cos(c.getLat()) < this._precision);
 
-        coords = MortonUtils.convertFromMorton(mortonCode, 25);
+        coords = MortonUtils.toGeoCoordinate(mortonCode, 25);
         assertTrue(Math.abs(coords.getLat() - c.getLat()) < this._precision * 100);
         assertTrue((Math.abs(coords.getLon() - c.getLon()) % 180) * Trigonometric.cos(c.getLat()) < this._precision * 100);
 
-        coords = MortonUtils.convertFromMorton(mortonCode, 20);
+        coords = MortonUtils.toGeoCoordinate(mortonCode, 20);
         assertTrue(Math.abs(coords.getLat() - c.getLat()) < this._precision * 1000);
         assertTrue((Math.abs(coords.getLon() - c.getLon()) % 180) * Trigonometric.cos(c.getLat()) < this._precision * 1000);
 
-        coords = MortonUtils.convertFromMorton(mortonCode, 15);
+        coords = MortonUtils.toGeoCoordinate(mortonCode, 15);
         assertTrue(Math.abs(coords.getLat() - c.getLat()) < this._precision * 20000);
         assertTrue((Math.abs(coords.getLon() - c.getLon()) % 180) * Trigonometric.cos(c.getLat()) < this._precision * 20000);
     }
@@ -85,69 +84,69 @@ public class MortonUtilsTest {
         double E_DEG = 90 - _g;
         System.out.println(E_DEG + " & " + F_DEG);
 
-        String mortonCode = MortonUtils.convertToMorton(E_DEG,-144d, 0.0d, 32);
-        GeoCoordinates coords = MortonUtils.convertFromMorton(mortonCode);
+        String mortonCode = MortonUtils.toPDCode(new GeoCoordinates(E_DEG,-144d, 0.0d), 32);
+        GeoCoordinates coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("1:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(E_DEG,-72d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(E_DEG,-72d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("2:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(E_DEG,0, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(E_DEG,0d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("3:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(E_DEG,72d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(E_DEG,72d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("4:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(E_DEG,144d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(E_DEG,144d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("5:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(F_DEG,-144d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(F_DEG,-144d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("6:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(F_DEG,-72d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(F_DEG,-72d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("7:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(F_DEG,0, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(F_DEG,0d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("8:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(F_DEG,72d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(F_DEG,72d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("9:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(F_DEG,144d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(F_DEG,144d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("10:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-F_DEG,-108d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-F_DEG,-108d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("11:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-F_DEG,-36d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-F_DEG,-36d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("12:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-F_DEG,36d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-F_DEG,36d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("13:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-F_DEG,108d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-F_DEG,108d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("14:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-F_DEG,180d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-F_DEG,180d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("15:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-E_DEG,-108d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-E_DEG,-108d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("16:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-E_DEG,-36d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-E_DEG,-36d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("17:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-E_DEG,36d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-E_DEG,36d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("18:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-E_DEG,108d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-E_DEG,108d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("19:" + coords.toString());
-        mortonCode = MortonUtils.convertToMorton(-E_DEG,180d, 0.0d, 32);
-        coords = MortonUtils.convertFromMorton(mortonCode);
+        mortonCode = MortonUtils.toPDCode(new GeoCoordinates(-E_DEG,180d, 0.0d), 32);
+        coords = MortonUtils.toGeoCoordinate(mortonCode);
         System.out.println("20:" + coords.toString());
     }
 
-    public void convertToMorton_Check_MIN() throws Exception {
+    public void convertToMorton_Check_MIN() {
         double epsilon = 0.00000000000001;
         double _V_lat = 26.56505120675770;//26.565051177;
         double _V_lon = -180d + 0.0000001;
@@ -178,9 +177,9 @@ public class MortonUtilsTest {
             double longitude = 135d;
             double height = 100d;
 
-            ISEA4DFaceCoordinates morton = MortonUtils.convertLatLong3DToMorton(latitude, longitude, height);
+            ISEA4DFaceCoordinates morton = MortonUtils.toFaceCoordinate(new GeoCoordinates(latitude, longitude, height));
             assert morton != null;
-            GeoCoordinates coordinate = MortonUtils.convertMortonToLatLong3D(morton, resolution);
+            GeoCoordinates coordinate = MortonUtils.toGeoCoordinate(morton, resolution);
 
             assert coordinate != null;
             System.out.println("lat:" + latitude +", long:" + longitude + ", height:" + height + ", r:" + resolution +

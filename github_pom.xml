@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>aist.dprt</groupId>
     <artifactId>dggs-code</artifactId>
-    <version>0.6.3</version>
+    <version>0.8.1</version>
     <packaging>jar</packaging>
 
     <name>DGGS Morton Code</name>
@@ -105,6 +105,23 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.locationtech.proj4j/proj4j -->
+        <dependency>
+            <groupId>org.locationtech.proj4j</groupId>
+            <artifactId>proj4j</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.locationtech.spatial4j/spatial4j -->
+        <dependency>
+            <groupId>org.locationtech.spatial4j</groupId>
+            <artifactId>spatial4j</artifactId>
+            <version>0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.ethz.globis.phtree</groupId>
+            <artifactId>phtree</artifactId>
+            <version>2.3.0</version>
         </dependency>
     </dependencies>
 </project>
